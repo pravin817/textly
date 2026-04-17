@@ -1,0 +1,157 @@
+
+#textai-toolbar {
+  all: initial;
+  position: absolute;
+  z-index: 2147483647;
+  width: 340px;
+  background: #1e1e2e;
+  border: 1px solid #3b3b52;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  color: #cdd6f4;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  overflow: hidden;
+}
+
+#textai-toolbar.textai-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+
+/* =============================================================================
+   DRAG HANDLE
+   Bar at the very top of the toolbar that the user grabs to reposition it.
+   - cursor: grab       → communicates "this is draggable"
+   - user-select: none  → prevents accidental text selection while dragging
+   - border-bottom      → visually separates it from the action buttons below
+============================================================================= */
+#textai-toolbar .textai-drag-handle {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  background: #16161f;
+  border-bottom: 1px solid #3b3b52;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#textai-toolbar .textai-drag-handle:active {
+  cursor: grabbing;
+}
+
+#textai-toolbar .textai-drag-dots {
+  font-size: 14px;
+  color: #44446a;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+#textai-toolbar .textai-drag-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+#textai-toolbar .textai-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px;
+}
+
+#textai-toolbar .textai-btn {
+  all: initial;
+  font-family: inherit;
+  font-size: 12px;
+  background: #2a2a3e;
+  color: #cdd6f4;
+  border: 1px solid #44446a;
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+#textai-toolbar .textai-btn:hover {
+  background: #6c63ff;
+  border-color: #6c63ff;
+  color: #fff;
+}
+
+#textai-toolbar .textai-result {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+#textai-toolbar .textai-result-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #cdd6f4;
+  max-height: 180px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+#textai-toolbar .textai-result-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #3b3b52;
+}
+
+#textai-toolbar .textai-icon-btn {
+  all: initial;
+  font-family: inherit;
+  font-size: 12px;
+  color: #a0a0c0;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.1s, background 0.1s;
+}
+
+#textai-toolbar .textai-icon-btn:hover {
+  color: #fff;
+  background: #2a2a3e;
+}
+
+#textai-toolbar .textai-loading {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 12px;
+  color: #a0a0c0;
+  font-size: 13px;
+}
+
+#textai-toolbar .textai-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #44446a;
+  border-top-color: #6c63ff;
+  border-radius: 50%;
+  animation: textai-spin 0.7s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+@keyframes textai-spin {
+  to { transform: rotate(360deg); }
+}

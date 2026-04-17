@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Textly",
+  "version": "1.0",
+  "description": "Textly — select any text on any page and instantly summarize, rephrase, fix grammar, translate and more using AI.",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["https://api.openai.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_title": "Textly",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
+}
