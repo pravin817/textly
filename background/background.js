@@ -1,30 +1,36 @@
 // background.js — Service Worker
 
-const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
-const MODEL = 'gpt-4o-mini'; // cheap + fast
+const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+const MODEL = "gpt-4o-mini"; // cheap + fast
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg.type !== 'AI_REQUEST') return;
+  // Handle AI requests from content script
+  if (msg.type === "AI_REQUEST") {
+    handleRequest(msg.prompt, msg.text)
+      .then((result) => sendResponse({ result }))
+      .catch((err) => sendResponse({ error: err.message }));
+    return true; // keep channel open for async response
+  }
 
-  handleRequest(msg.prompt, msg.text)
-    .then(result => sendResponse({ result }))
-    .catch(err => sendResponse({ error: err.message }));
-
-  return true; // keep channel open for async response
+  // Handle settings page open request from content script
+  if (msg.type === "OPEN_OPTIONS") {
+    chrome.runtime.openOptionsPage();
+    return false;
+  }
 });
 
 async function handleRequest(prompt, text) {
-  const { openai_key } = await chrome.storage.sync.get('openai_key');
+  const { openai_key } = await chrome.storage.sync.get("openai_key");
 
   if (!openai_key) {
-    throw new Error('No API key set. Right-click extension icon → Options.');
+    throw new Error("No API key set. Click the Textly icon → Save Key.");
   }
 
   const res = await fetch(OPENAI_URL, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${openai_key}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${openai_key}`,
     },
     body: JSON.stringify({
       model: MODEL,
@@ -32,15 +38,16 @@ async function handleRequest(prompt, text) {
       temperature: 0.7,
       messages: [
         {
-          role: 'system',
-          content: 'You are a versatile AI assistant. Follow the user instructions precisely. Be concise and well-formatted. Return only the result, no preamble.'
+          role: "system",
+          content:
+            "You are a versatile AI assistant. Follow the user instructions precisely. Be concise and well-formatted. Return only the result, no preamble.",
         },
         {
-          role: 'user',
-          content: `${prompt}\n\n${text}`
-        }
-      ]
-    })
+          role: "user",
+          content: `${prompt}\n\n${text}`,
+        },
+      ],
+    }),
   });
 
   if (!res.ok) {
@@ -49,5 +56,5 @@ async function handleRequest(prompt, text) {
   }
 
   const data = await res.json();
-  return data.choices?.[0]?.message?.content?.trim() || '—';
+  return data.choices?.[0]?.message?.content?.trim() || "—";
 }

@@ -1,24 +1,91 @@
+/* Google Fonts — Inter */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
 /* =============================================================================
-   TOOLBAR — Main container
+   TOOLBAR — Theme System + Jira Design
    ============================================================================= */
+
+/* ---------------------------------------------------------------------------
+   THEME TOKENS — Dark (default)
+   --------------------------------------------------------------------------- */
+#textai-toolbar,
+#textai-toolbar[data-theme="dark"] {
+  --bg: #1d2125;
+  --surface: #22272b;
+  --overlay: #282e33;
+  --handle-bg: #161a1d;
+  --border: #a6c5e214;
+  --border-vis: #a6c5e229;
+  --text: #dee4ea;
+  --text-sub: #9fadbc;
+  --text-dim: #738496;
+  --accent: #579dff;
+  --accent-text: #1d2125;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --scrollbar: #a6c5e229;
+}
+
+/* ---------------------------------------------------------------------------
+   THEME TOKENS — Light
+   --------------------------------------------------------------------------- */
+#textai-toolbar[data-theme="light"] {
+  --bg: #ffffff;
+  --surface: #f1f2f4;
+  --overlay: #e9eaec;
+  --handle-bg: #f7f8f9;
+  --border: #091e4224;
+  --border-vis: #091e4224;
+  --text: #172b4d;
+  --text-sub: #44546f;
+  --text-dim: #626f86;
+  --accent: #0c66e4;
+  --accent-text: #ffffff;
+  --shadow: rgba(9, 30, 66, 0.15);
+  --scrollbar: #091e4224;
+}
+
+/* ---------------------------------------------------------------------------
+   MAIN CONTAINER
+   --------------------------------------------------------------------------- */
 
 #textai-toolbar {
   all: initial;
   position: absolute;
   z-index: 2147483647;
   width: 380px;
-  background: #1e1e2e;
-  border: 1px solid #3b3b52;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  border: 1px solid var(--border-vis);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px var(--shadow);
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Ubuntu,
+    sans-serif;
   font-size: 13px;
-  color: #cdd6f4;
+  color: var(--text);
   opacity: 0;
   transform: translateY(-6px);
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    background 0.2s,
+    color 0.2s;
   overflow: hidden;
+}
+
+@keyframes toolbarSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 #textai-toolbar.textai-visible {
@@ -26,7 +93,6 @@
   transform: translateY(0);
   pointer-events: all;
 }
-
 
 /* =============================================================================
    DRAG HANDLE
@@ -38,8 +104,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  background: #16161f;
-  border-bottom: 1px solid #3b3b52;
+  background: var(--handle-bg);
+  border-bottom: 1px solid var(--border);
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
@@ -51,7 +117,7 @@
 
 #textai-toolbar .textai-drag-dots {
   font-size: 14px;
-  color: #44446a;
+  color: var(--text-dim);
   letter-spacing: 2px;
   line-height: 1;
 }
@@ -59,23 +125,40 @@
 #textai-toolbar .textai-drag-label {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  color: #ffffff;
+  letter-spacing: 0.04em;
+  color: var(--text);
   text-transform: uppercase;
 }
 
+#textai-toolbar .textai-settings-btn {
+  all: initial;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  line-height: 1;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+#textai-toolbar .textai-settings-btn:hover {
+  color: var(--text);
+  background: var(--overlay);
+}
 
 /* =============================================================================
    CATEGORY TABS
-   Slim pill-style tabs that sit between the drag handle and the action buttons.
    ============================================================================= */
 
 #textai-toolbar .textai-tabs {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   padding: 6px 8px;
-  background: #1a1a28;
-  border-bottom: 1px solid #2e2e44;
+  background: var(--handle-bg);
+  border-bottom: 1px solid var(--border);
 }
 
 #textai-toolbar .textai-tab {
@@ -83,30 +166,33 @@
   font-family: inherit;
   font-size: 11px;
   font-weight: 500;
-  color: #6e6e8a;
+  color: var(--text-sub);
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 4px 10px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 3px 3px 0 0;
+  padding: 5px 10px;
   cursor: pointer;
   white-space: nowrap;
-  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s,
+    border-color 0.15s;
   flex: 1;
   text-align: center;
 }
 
 #textai-toolbar .textai-tab:hover {
-  color: #cdd6f4;
-  background: #2a2a3e;
+  color: var(--text);
+  background: var(--overlay);
 }
 
 #textai-toolbar .textai-tab.textai-tab-active {
-  color: #fff;
-  background: #6c63ff;
-  border-color: #6c63ff;
+  color: var(--accent);
+  background: transparent;
+  border-bottom-color: var(--accent);
   font-weight: 600;
 }
-
 
 /* =============================================================================
    ACTION BUTTONS
@@ -123,22 +209,75 @@
   all: initial;
   font-family: inherit;
   font-size: 12px;
-  background: #2a2a3e;
-  color: #cdd6f4;
-  border: 1px solid #44446a;
-  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-vis);
+  border-radius: 3px;
   padding: 5px 10px;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.1s, border-color 0.1s;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s,
+    transform 0.12s;
+  animation: toolbarSlideIn 0.2s ease-out both;
+}
+
+#textai-toolbar .textai-btn:nth-child(1) {
+  animation-delay: 0.02s;
+}
+#textai-toolbar .textai-btn:nth-child(2) {
+  animation-delay: 0.04s;
+}
+#textai-toolbar .textai-btn:nth-child(3) {
+  animation-delay: 0.06s;
+}
+#textai-toolbar .textai-btn:nth-child(4) {
+  animation-delay: 0.08s;
+}
+#textai-toolbar .textai-btn:nth-child(5) {
+  animation-delay: 0.1s;
+}
+#textai-toolbar .textai-btn:nth-child(6) {
+  animation-delay: 0.12s;
+}
+#textai-toolbar .textai-btn:nth-child(7) {
+  animation-delay: 0.14s;
+}
+#textai-toolbar .textai-btn:nth-child(8) {
+  animation-delay: 0.16s;
+}
+#textai-toolbar .textai-btn:nth-child(9) {
+  animation-delay: 0.18s;
 }
 
 #textai-toolbar .textai-btn:hover {
-  background: #6c63ff;
-  border-color: #6c63ff;
-  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  transform: translateY(-1px);
 }
 
+#textai-toolbar .textai-btn:active {
+  transform: scale(0.96);
+}
+
+/* =============================================================================
+   WARNING TOAST
+   ============================================================================= */
+
+#textai-toolbar .textai-warning {
+  font-size: 11px;
+  font-family: inherit;
+  padding: 6px 10px;
+  margin: 0 10px 4px;
+  border-radius: 3px;
+  background: rgba(245, 205, 71, 0.12);
+  color: #f5cd47;
+  border-left: 2px solid #f5cd47;
+  animation: toolbarSlideIn 0.15s ease-out;
+}
 
 /* =============================================================================
    RESULT PANEL
@@ -149,12 +288,13 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px;
+  animation: toolbarSlideIn 0.2s ease-out;
 }
 
 #textai-toolbar .textai-result-text {
   font-size: 13px;
   line-height: 1.6;
-  color: #cdd6f4;
+  color: var(--text);
   max-height: 220px;
   overflow-y: auto;
   white-space: pre-wrap;
@@ -166,28 +306,29 @@
   display: flex;
   gap: 8px;
   padding-top: 6px;
-  border-top: 1px solid #3b3b52;
+  border-top: 1px solid var(--border);
 }
 
 #textai-toolbar .textai-icon-btn {
   all: initial;
   font-family: inherit;
   font-size: 12px;
-  color: #a0a0c0;
+  color: var(--text-sub);
   cursor: pointer;
   padding: 4px 8px;
-  border-radius: 6px;
-  transition: color 0.1s, background 0.1s;
+  border-radius: 3px;
+  transition:
+    color 0.1s,
+    background 0.1s;
 }
 
 #textai-toolbar .textai-icon-btn:hover {
-  color: #fff;
-  background: #2a2a3e;
+  color: var(--text);
+  background: var(--overlay);
 }
 
-
 /* =============================================================================
-   LOADING INDICATOR
+   LOADING
    ============================================================================= */
 
 #textai-toolbar .textai-loading {
@@ -195,15 +336,15 @@
   align-items: center;
   gap: 8px;
   padding: 14px 12px;
-  color: #a0a0c0;
+  color: var(--text-sub);
   font-size: 13px;
 }
 
 #textai-toolbar .textai-spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid #44446a;
-  border-top-color: #6c63ff;
+  border: 2px solid var(--border-vis);
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: textai-spin 0.7s linear infinite;
   display: inline-block;
@@ -211,5 +352,19 @@
 }
 
 @keyframes textai-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Scrollbar */
+#textai-toolbar .textai-result-text::-webkit-scrollbar {
+  width: 6px;
+}
+#textai-toolbar .textai-result-text::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+#textai-toolbar .textai-result-text::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border-radius: 3px;
 }
