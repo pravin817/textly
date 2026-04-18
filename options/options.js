@@ -4,7 +4,9 @@ const statusEl  = document.getElementById('status');
 
 // Load existing key
 chrome.storage.sync.get('openai_key', ({ openai_key }) => {
-  if (openai_key) keyInput.value = openai_key;
+  if (openai_key) {
+    keyInput.value = openai_key;
+  }
 });
 
 // Save

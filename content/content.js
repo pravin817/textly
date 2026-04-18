@@ -5,30 +5,14 @@
 //   2. Handle all toolbar UI interactions (action buttons, copy, back)
 //   3. Enable drag-to-move on the toolbar via the drag handle
 //   4. Send AI requests to background.js and display the results
+//
+// NOTE: The ACTIONS array is defined in actions.js, which is loaded before
+// this file via manifest.json content_scripts configuration.
 // =============================================================================
 
 
-// -----------------------------------------------------------------------------
-// ACTIONS CONFIG
-// Each entry defines one button in the toolbar.
-//   id     — unique key, set as data-id on the button element
-//   label  — what the user sees on the button
-//   prompt — the instruction sent to OpenAI before the selected text
-// -----------------------------------------------------------------------------
-const ACTIONS = [
-  { id: 'summarize',           label: '📝 Summarize',  prompt: 'Summarize the following text concisely in 2-3 sentences:' },
-  { id: 'formal',              label: '👔 Formal',      prompt: 'Rewrite the following text in a professional, formal tone:' },
-  { id: 'casual',              label: '😊 Casual',      prompt: 'Rewrite the following text in a friendly, casual tone:' },
-  { id: 'linkedin-post-reply', label: '🔗 LinkedIn Reply', prompt: 'Write a thoughtful, engaging reply to this LinkedIn post:' },
-  { id: 'grammar',             label: '✅ Fix Grammar', prompt: 'Fix all grammar, spelling, and punctuation errors. Return only the corrected text:' },
-  { id: 'explain',             label: '💡 Explain',     prompt: 'Explain the following text in simple, easy-to-understand terms:' },
-  { id: 'bullets',             label: '• Bullets',      prompt: 'Convert the following text into clear, concise bullet points:' },
-  { id: 'shorter',             label: '✂️ Shorter',     prompt: 'Make the following text shorter while keeping the key message:' },
-  { id: 'translate',           label: '🌐 To English',  prompt: 'Translate the following text to English:' },
-];
 
-
-let toolbar   = null;
+let toolbar = null;
 let hideTimer = null;
 
 
@@ -47,7 +31,7 @@ let hideTimer = null;
 // Subtracting the offset on every mousemove keeps the grab point stable
 // so the toolbar moves with the cursor naturally.
 // -----------------------------------------------------------------------------
-let isDragging  = false;
+let isDragging = false;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 
@@ -57,10 +41,10 @@ let dragOffsetY = 0;
 // =============================================================================
 
 function createToolbar() {
-  const el = document.createElement('div');
-  el.id = 'textai-toolbar';
+  const toolbarElement = document.createElement('div');
+  toolbarElement.id = 'textai-toolbar';
 
-  el.innerHTML = `
+  toolbarElement.innerHTML = `
     <!-- Drag handle — user grabs this bar to reposition the toolbar anywhere on the page -->
     <div class="textai-drag-handle" id="textai-drag-handle">
       <span class="textai-drag-dots">⠿</span>
@@ -71,8 +55,8 @@ function createToolbar() {
     <!-- Action buttons — one per entry in the ACTIONS array -->
     <div class="textai-actions">
       ${ACTIONS.map(a =>
-        `<button class="textai-btn" data-id="${a.id}">${a.label}</button>`
-      ).join('')}
+    `<button class="textai-btn" data-id="${a.id}">${a.label}</button>`
+  ).join('')}
     </div>
 
     <!-- Result panel — hidden until an action completes -->
@@ -90,12 +74,12 @@ function createToolbar() {
     </div>
   `;
 
-  document.body.appendChild(el);
+  document.body.appendChild(toolbarElement);
 
   // Attach drag behaviour to the handle now that it exists in the DOM
-  attachDragHandle(el.querySelector('#textai-drag-handle'));
+  attachDragHandle(toolbarElement.querySelector('#textai-drag-handle'));
 
-  return el;
+  return toolbarElement;
 }
 
 
@@ -120,12 +104,12 @@ function startDrag(e) {
   e.preventDefault();
   isDragging = true;
 
-  const rect  = toolbar.getBoundingClientRect();
+  const rect = toolbar.getBoundingClientRect();
   dragOffsetX = e.clientX - rect.left;
   dragOffsetY = e.clientY - rect.top;
 
   document.addEventListener('mousemove', onDrag);
-  document.addEventListener('mouseup',   stopDrag);
+  document.addEventListener('mouseup', stopDrag);
 }
 
 
@@ -136,24 +120,24 @@ function onDrag(e) {
 
   // Convert cursor viewport position → toolbar corner viewport position
   let newLeft = e.clientX - dragOffsetX;
-  let newTop  = e.clientY - dragOffsetY;
+  let newTop = e.clientY - dragOffsetY;
 
   // Clamp: prevent the toolbar from being dragged outside the viewport
-  const maxLeft = window.innerWidth  - toolbar.offsetWidth;
-  const maxTop  = window.innerHeight - toolbar.offsetHeight;
+  const maxLeft = window.innerWidth - toolbar.offsetWidth;
+  const maxTop = window.innerHeight - toolbar.offsetHeight;
   newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-  newTop  = Math.max(0, Math.min(newTop,  maxTop));
+  newTop = Math.max(0, Math.min(newTop, maxTop));
 
   // The toolbar uses position:absolute, so its top/left are relative to the
   // document — add scroll offsets to convert from viewport to document space.
   toolbar.style.left = (newLeft + window.scrollX) + 'px';
-  toolbar.style.top  = (newTop  + window.scrollY) + 'px';
+  toolbar.style.top = (newTop + window.scrollY) + 'px';
 }
 
 function stopDrag() {
   isDragging = false;
   document.removeEventListener('mousemove', onDrag);
-  document.removeEventListener('mouseup',   stopDrag);
+  document.removeEventListener('mouseup', stopDrag);
 }
 
 
@@ -164,7 +148,7 @@ function stopDrag() {
 
 function positionToolbar(rect) {
   const tbWidth = 340;
-  let top  = window.scrollY + rect.bottom + 8;  // 8px gap below the selection
+  let top = window.scrollY + rect.bottom + 8;  // 8px gap below the selection
   let left = window.scrollX + rect.left;
 
   // Push left if the toolbar would overflow the right edge of the viewport
@@ -175,27 +159,32 @@ function positionToolbar(rect) {
   if (left < window.scrollX + 8)
     left = window.scrollX + 8;
 
-  toolbar.style.top  = `${top}px`;
+  toolbar.style.top = `${top}px`;
   toolbar.style.left = `${left}px`;
 }
 
 function showToolbar(rect) {
   clearTimeout(hideTimer);
-  if (!toolbar) toolbar = createToolbar();
+  if (!toolbar) {
+    toolbar = createToolbar();
+  }
   resetToolbar();
   positionToolbar(rect);
   toolbar.classList.add('textai-visible');
   attachHandlers();
 }
 
-
+// Function used to hide the toolbar
 function hideToolbar() {
-  if (toolbar) toolbar.classList.remove('textai-visible');
+  if (toolbar) {
+    toolbar.classList.remove('textai-visible');
+  }
 }
 
+// Function used to reset the toolbar
 function resetToolbar() {
   toolbar.querySelector('.textai-actions').style.display = 'flex';
-  toolbar.querySelector('.textai-result').style.display  = 'none';
+  toolbar.querySelector('.textai-result').style.display = 'none';
   toolbar.querySelector('.textai-loading').style.display = 'none';
 }
 
@@ -210,8 +199,10 @@ function attachHandlers() {
   toolbar.querySelectorAll('.textai-btn').forEach(btn => {
     btn.onclick = () => {
       const action = ACTIONS.find(a => a.id === btn.dataset.id);
-      const text   = window.getSelection().toString().trim();
-      if (!action || !text) return;
+      const text = window.getSelection().toString().trim();
+      if (!action || !text) {
+        return;
+      }
       runAction(action, text);
     };
   });
@@ -248,7 +239,7 @@ function runAction(action, text) {
       toolbar.querySelector('.textai-loading').style.display = 'none';
 
       const resultEl = toolbar.querySelector('.textai-result');
-      const textEl   = toolbar.querySelector('.textai-result-text');
+      const textEl = toolbar.querySelector('.textai-result-text');
 
       if (response?.error) {
         // Show the error inline — user can still go Back and try another action

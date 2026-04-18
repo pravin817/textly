@@ -1,4 +1,4 @@
-# Textly ✦
+# Textly — Select. Act. Done. ✦
 
 > Select any text on any webpage and instantly summarize, rephrase, fix grammar, translate, and more — powered by OpenAI.
 
