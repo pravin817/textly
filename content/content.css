@@ -1,9 +1,12 @@
+/* =============================================================================
+   TOOLBAR — Main container
+   ============================================================================= */
 
 #textai-toolbar {
   all: initial;
   position: absolute;
   z-index: 2147483647;
-  width: 340px;
+  width: 380px;
   background: #1e1e2e;
   border: 1px solid #3b3b52;
   border-radius: 12px;
@@ -27,17 +30,14 @@
 
 /* =============================================================================
    DRAG HANDLE
-   Bar at the very top of the toolbar that the user grabs to reposition it.
-   - cursor: grab       → communicates "this is draggable"
-   - user-select: none  → prevents accidental text selection while dragging
-   - border-bottom      → visually separates it from the action buttons below
-============================================================================= */
+   ============================================================================= */
+
 #textai-toolbar .textai-drag-handle {
   all: unset;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 12px;
+  padding: 6px 12px;
   background: #16161f;
   border-bottom: 1px solid #3b3b52;
   cursor: grab;
@@ -63,6 +63,54 @@
   color: #ffffff;
   text-transform: uppercase;
 }
+
+
+/* =============================================================================
+   CATEGORY TABS
+   Slim pill-style tabs that sit between the drag handle and the action buttons.
+   ============================================================================= */
+
+#textai-toolbar .textai-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px;
+  background: #1a1a28;
+  border-bottom: 1px solid #2e2e44;
+}
+
+#textai-toolbar .textai-tab {
+  all: initial;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  color: #6e6e8a;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  flex: 1;
+  text-align: center;
+}
+
+#textai-toolbar .textai-tab:hover {
+  color: #cdd6f4;
+  background: #2a2a3e;
+}
+
+#textai-toolbar .textai-tab.textai-tab-active {
+  color: #fff;
+  background: #6c63ff;
+  border-color: #6c63ff;
+  font-weight: 600;
+}
+
+
+/* =============================================================================
+   ACTION BUTTONS
+   ============================================================================= */
 
 #textai-toolbar .textai-actions {
   display: flex;
@@ -91,6 +139,11 @@
   color: #fff;
 }
 
+
+/* =============================================================================
+   RESULT PANEL
+   ============================================================================= */
+
 #textai-toolbar .textai-result {
   display: none;
   flex-direction: column;
@@ -102,7 +155,7 @@
   font-size: 13px;
   line-height: 1.6;
   color: #cdd6f4;
-  max-height: 180px;
+  max-height: 220px;
   overflow-y: auto;
   white-space: pre-wrap;
   user-select: text;
@@ -131,6 +184,11 @@
   color: #fff;
   background: #2a2a3e;
 }
+
+
+/* =============================================================================
+   LOADING INDICATOR
+   ============================================================================= */
 
 #textai-toolbar .textai-loading {
   display: none;

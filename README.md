@@ -1,8 +1,8 @@
 # Textly — Select. Act. Done. ✦
 
-> Select any text on any webpage and instantly summarize, rephrase, fix grammar, translate, and more — powered by OpenAI.
+> Select any text on any webpage and instantly summarize, rephrase, fix grammar, translate, learn, practice DSA, take quizzes, and more — powered by OpenAI.
 
-![Version](https://img.shields.io/badge/version-1.0.0-6c63ff)
+![Version](https://img.shields.io/badge/version-2.0.0-6c63ff)
 ![Manifest](https://img.shields.io/badge/manifest-v3-6c63ff)
 ![License](https://img.shields.io/badge/license-MIT-6c63ff)
 
@@ -10,20 +10,21 @@
 
 ## What is Textly?
 
-Textly is a Chrome extension that puts AI text operations one click away on any webpage. Highlight any text, pick an action from the floating toolbar, and get an instant AI-powered result — without leaving the page or switching tabs.
+Textly is a Chrome extension that puts AI-powered text operations one click away on any webpage. Highlight any text, pick a category tab, choose an action from the floating toolbar, and get an instant result — without leaving the page or switching tabs.
 
-It supports follow-up questions, so you can have a full back-and-forth conversation about any piece of text.
+**4 modes, 27 actions** — from writing assistance to learning, DSA practice, and quiz generation.
 
 ---
 
 ## Features
 
-- **8 built-in actions** — Summarize, Formal, Casual, Fix Grammar, Explain, Bullets, Shorter, Translate to English
-- **Follow-up questions** — Continue the conversation with full context preserved
+- **4 category tabs** — General, Learn, DSA, Quiz
+- **27 built-in actions** — Summarize, Explain, Debug Code, Generate MCQs, and more
 - **Drag to move** — Reposition the toolbar anywhere on the screen
 - **Works on any webpage** — Articles, PDFs opened in Chrome, emails, documentation
 - **Your key, your data** — API key stored locally, requests go directly to OpenAI
 - **No backend** — Fully client-side, nothing passes through any third-party server
+- **Easily extensible** — Add new actions or categories with a single config entry
 
 ---
 
@@ -31,12 +32,17 @@ It supports follow-up questions, so you can have a full back-and-forth conversat
 
 ```
 textly/
-├── manifest.json      # Extension config — permissions, entry points, metadata
-├── background.js      # Service worker — handles OpenAI API calls
-├── content.js         # Injected into pages — toolbar UI, drag, conversation state
-├── content.css        # Toolbar styles — scoped to avoid host page collisions
-├── options.html       # Settings page — API key entry
-├── options.js         # Settings logic — save/load API key
+├── manifest.json              # Extension config — permissions, entry points, metadata
+├── README.md
+├── background/
+│   └── background.js          # Service worker — handles OpenAI API calls
+├── content/
+│   ├── actions.js             # Action categories & prompt definitions
+│   ├── content.js             # Injected into pages — toolbar UI, tabs, drag
+│   └── content.css            # Toolbar styles — scoped to avoid host page collisions
+├── options/
+│   ├── options.html           # Settings page — API key entry
+│   └── options.js             # Settings logic — save/load API key
 └── icons/
     ├── icon16.png
     ├── icon48.png
@@ -52,16 +58,17 @@ User highlights text on any page
           ↓
 Textly toolbar appears below the selection
           ↓
-User picks an action (e.g. Summarize)
+User selects a category tab (General / Learn / DSA / Quiz)
           ↓
-content.js builds a messages array and sends it to background.js
+User picks an action (e.g. Summarize, ELI5, Debug Code, MCQ)
+          ↓
+content.js sends the prompt + text to background.js
           ↓
 background.js calls OpenAI /v1/chat/completions
           ↓
 Result is displayed in the toolbar
           ↓
-User can ask follow-up questions — full conversation history is maintained
-and sent to OpenAI on every turn so context is never lost
+User can Copy the result or go Back to try another action
 ```
 
 ---
@@ -98,30 +105,61 @@ Textly is not yet on the Chrome Web Store. Install it in developer mode:
 1. Go to any webpage
 2. Select / highlight any text (minimum 10 characters)
 3. The Textly toolbar appears just below your selection
-4. Click any action button
-5. Read the result — then type a follow-up question if needed
-6. Drag the toolbar by the **Textly** handle bar to move it anywhere on screen
-
-### Keyboard
-
-| Action | Shortcut |
-|---|---|
-| Send follow-up | `Enter` |
+4. Choose a **category tab** at the top (General, Learn, DSA, or Quiz)
+5. Click any action button
+6. Read the result — click **📋 Copy** to copy or **← Back** to try another action
+7. Drag the toolbar by the **Textly** handle bar to move it anywhere on screen
 
 ---
 
 ## Actions Reference
+
+### ✏️ General — Text manipulation and rewriting
 
 | Button | What it does |
 |---|---|
 | 📝 Summarize | 2–3 sentence summary of the selected text |
 | 👔 Formal | Rewrites the text in a professional tone |
 | 😊 Casual | Rewrites the text in a friendly, casual tone |
-| ✅ Fix Grammar | Corrects grammar, spelling, and punctuation |
+| 🔗 LinkedIn | Writes a thoughtful LinkedIn reply |
+| ✅ Grammar | Corrects grammar, spelling, and punctuation |
 | 💡 Explain | Explains the text in plain, simple language |
-|  • Bullets | Converts the text into bullet points |
+| • Bullets | Converts the text into bullet points |
 | ✂️ Shorter | Condenses the text while keeping the key message |
-| 🌐 To English | Translates the text to English |
+| 🌐 English | Translates the text to English |
+
+### 📖 Learn — Understanding and exploring topics
+
+| Button | What it does |
+|---|---|
+| 🧒 ELI5 | Explains like you're 5 — ultra-simple |
+| 🧠 Key Concepts | Extracts key terms and definitions |
+| 🔍 Deep Dive | Detailed explanation with examples |
+| 💭 Analogy | Explains using a real-world analogy |
+| 📚 Related Topics | Suggests what to learn next |
+| 🗺️ Roadmap | Creates a learning path for the topic |
+
+### 🧩 DSA — Data Structures & Algorithms practice
+
+| Button | What it does |
+|---|---|
+| 🔍 Pattern | Identifies the DSA pattern (sliding window, BFS, etc.) |
+| 📝 Pseudocode | Converts problem to step-by-step pseudocode |
+| ⏱️ Complexity | Analyzes time & space complexity |
+| 🔄 Alternatives | Suggests brute-force vs optimal solutions |
+| 🐛 Debug | Finds bugs and logical errors in code |
+| 💡 Hints | Gives progressive hints without revealing the solution |
+
+### 🎯 Quiz — Generate questions from any text
+
+| Button | What it does |
+|---|---|
+| 📋 MCQ | Generates 5 multiple-choice questions |
+| ✍️ Short Answer | Generates short-answer questions |
+| ✅ True/False | Generates true/false statements |
+| 🔲 Fill Blanks | Generates fill-in-the-blank questions |
+| 🧠 Flashcards | Generates Q&A flashcard pairs |
+| 🎯 Viva Q&A | Generates interview/viva-style questions |
 
 ---
 
@@ -141,21 +179,41 @@ No build step. No bundler. No npm. Open the folder, load unpacked, done.
 
 ## Configuration
 
-All configuration lives in `background.js`:
+Model and response settings live in `background/background.js`:
 
 ```js
-const MODEL      = 'gpt-4o-mini';  // Swap to 'gpt-4o' for higher quality
-const MAX_TOKENS = 600;             // Maximum response length
-const TEMP       = 0.7;             // 0 = deterministic, 1 = creative
+const MODEL = 'gpt-4o-mini';  // Swap to 'gpt-4o' for higher quality
+// max_tokens: 1024            // Maximum response length
+// temperature: 0.7            // 0 = deterministic, 1 = creative
 ```
 
-To add a new action, add one entry to the `ACTIONS` array in `content.js`:
+### Adding a New Action
+
+Add one entry to any category's `actions` array in `content/actions.js`:
 
 ```js
-{ id: 'myaction', label: '🔥 My Action', prompt: 'Do something to this text:' }
+{
+  id: 'myaction',
+  label: '🔥 My Action',
+  prompt: 'Do something to this text:'
+}
 ```
 
-That's all — the button renders automatically.
+### Adding a New Category
+
+Add a new object to `ACTION_CATEGORIES` in `content/actions.js`:
+
+```js
+{
+  id: 'mycategory',
+  label: '🆕 My Category',
+  actions: [
+    { id: 'action1', label: '⚡ Action', prompt: 'Your prompt here:' }
+  ]
+}
+```
+
+The tab and buttons render automatically — no other code changes needed.
 
 ---
 

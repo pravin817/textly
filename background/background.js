@@ -1,14 +1,14 @@
 // background.js — Service Worker
 
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
-const MODEL      = 'gpt-4o-mini'; // cheap + fast
+const MODEL = 'gpt-4o-mini'; // cheap + fast
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type !== 'AI_REQUEST') return;
 
   handleRequest(msg.prompt, msg.text)
     .then(result => sendResponse({ result }))
-    .catch(err  => sendResponse({ error: err.message }));
+    .catch(err => sendResponse({ error: err.message }));
 
   return true; // keep channel open for async response
 });
@@ -23,17 +23,17 @@ async function handleRequest(prompt, text) {
   const res = await fetch(OPENAI_URL, {
     method: 'POST',
     headers: {
-      'Content-Type':  'application/json',
+      'Content-Type': 'application/json',
       'Authorization': `Bearer ${openai_key}`,
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 500,
+      max_tokens: 1024,
       temperature: 0.7,
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful writing assistant. Be concise. Return only the result, no preamble.'
+          content: 'You are a versatile AI assistant. Follow the user instructions precisely. Be concise and well-formatted. Return only the result, no preamble.'
         },
         {
           role: 'user',
