@@ -82,6 +82,7 @@
     opacity: 0;
     transform: translateY(6px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -109,6 +110,13 @@
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
+}
+
+#textai-toolbar .textai-drag-left,
+#textai-toolbar .textai-drag-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 #textai-toolbar .textai-drag-handle:active {
@@ -144,7 +152,8 @@
     background 0.15s;
 }
 
-#textai-toolbar .textai-settings-btn:hover {
+#textai-toolbar .textai-settings-btn:hover,
+#textai-toolbar .textai-settings-btn.active {
   color: var(--text);
   background: var(--overlay);
 }
@@ -227,27 +236,35 @@
 #textai-toolbar .textai-btn:nth-child(1) {
   animation-delay: 0.02s;
 }
+
 #textai-toolbar .textai-btn:nth-child(2) {
   animation-delay: 0.04s;
 }
+
 #textai-toolbar .textai-btn:nth-child(3) {
   animation-delay: 0.06s;
 }
+
 #textai-toolbar .textai-btn:nth-child(4) {
   animation-delay: 0.08s;
 }
+
 #textai-toolbar .textai-btn:nth-child(5) {
   animation-delay: 0.1s;
 }
+
 #textai-toolbar .textai-btn:nth-child(6) {
   animation-delay: 0.12s;
 }
+
 #textai-toolbar .textai-btn:nth-child(7) {
   animation-delay: 0.14s;
 }
+
 #textai-toolbar .textai-btn:nth-child(8) {
   animation-delay: 0.16s;
 }
+
 #textai-toolbar .textai-btn:nth-child(9) {
   animation-delay: 0.18s;
 }
@@ -277,6 +294,50 @@
   color: #f5cd47;
   border-left: 2px solid #f5cd47;
   animation: toolbarSlideIn 0.15s ease-out;
+}
+
+/* =============================================================================
+   CHAT BOX (CUSTOM QUERY)
+   ============================================================================= */
+
+#textai-toolbar .textai-chat-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border-vis);
+}
+
+#textai-toolbar #textai-custom-prompt {
+  all: unset;
+  flex: 1;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: transparent;
+}
+
+#textai-toolbar #textai-custom-prompt::placeholder {
+  color: var(--text-dim);
+}
+
+#textai-toolbar #textai-custom-submit {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  color: var(--accent);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+#textai-toolbar #textai-custom-submit:hover {
+  background: var(--accent);
+  color: var(--accent-text);
 }
 
 /* =============================================================================
@@ -361,10 +422,162 @@
 #textai-toolbar .textai-result-text::-webkit-scrollbar {
   width: 6px;
 }
+
 #textai-toolbar .textai-result-text::-webkit-scrollbar-track {
   background: var(--bg);
 }
+
 #textai-toolbar .textai-result-text::-webkit-scrollbar-thumb {
   background: var(--scrollbar);
   border-radius: 3px;
+}
+
+/* =============================================================================
+   CHAT HISTORY & FOLLOW-UP
+   ============================================================================= */
+
+#textai-toolbar .textai-chat-msg {
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+#textai-toolbar .textai-chat-context-details {
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+
+#textai-toolbar .textai-chat-context-details summary {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-sub);
+  user-select: none;
+}
+
+#textai-toolbar .textai-chat-context-text {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  padding: 6px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  max-height: 100px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+#textai-toolbar[data-theme="dark"] .textai-chat-context-text {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+#textai-toolbar .textai-chat-divider {
+  height: 1px;
+  background: var(--border-vis);
+  margin: 8px 0;
+}
+
+#textai-toolbar .textai-chat-question {
+  font-size: 13px;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+#textai-toolbar .textai-chat-user {
+  background: var(--surface);
+  color: var(--text-sub);
+  border: 1px solid var(--border-vis);
+  margin-left: 24px;
+}
+
+#textai-toolbar .textai-chat-assistant {
+  background: transparent;
+  color: var(--text);
+  margin-right: 12px;
+  border: 1px solid var(--border-vis);
+}
+
+#textai-toolbar .textai-msg-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  justify-content: flex-start;
+}
+
+#textai-toolbar .textai-msg-action-btn {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+
+#textai-toolbar .textai-msg-action-btn:hover {
+  background: var(--overlay);
+  color: var(--text);
+}
+
+#textai-toolbar .textai-msg-action-btn:active {
+  transform: scale(0.95);
+}
+
+#textai-toolbar .textai-msg-action-btn.active {
+  background: var(--overlay);
+  color: var(--accent);
+}
+
+#textai-toolbar .textai-followup-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-vis);
+}
+
+#textai-toolbar #textai-followup-prompt {
+  all: unset;
+  flex: 1;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: transparent;
+}
+
+#textai-toolbar #textai-followup-prompt::placeholder {
+  color: var(--text-dim);
+}
+
+#textai-toolbar #textai-followup-prompt:disabled {
+  opacity: 0.5;
+}
+
+#textai-toolbar #textai-followup-submit {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  color: var(--accent);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+#textai-toolbar #textai-followup-submit:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+#textai-toolbar #textai-followup-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
