@@ -6,7 +6,7 @@ const MODEL = "gpt-4o-mini"; // cheap + fast
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   // Handle AI requests from content script
   if (msg.type === "AI_REQUEST") {
-    handleRequest(msg.prompt, msg.text)
+    handleRequest(msg.messages)
       .then((result) => sendResponse({ result }))
       .catch((err) => sendResponse({ error: err.message }));
     return true; // keep channel open for async response
@@ -19,7 +19,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
 });
 
-async function handleRequest(prompt, text) {
+async function handleRequest(messages) {
   const { openai_key } = await chrome.storage.sync.get("openai_key");
 
   if (!openai_key) {
@@ -42,10 +42,7 @@ async function handleRequest(prompt, text) {
           content:
             "You are a versatile AI assistant. Follow the user instructions precisely. Be concise and well-formatted. Return only the result, no preamble.",
         },
-        {
-          role: "user",
-          content: `${prompt}\n\n${text}`,
-        },
+        ...messages,
       ],
     }),
   });

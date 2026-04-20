@@ -20,6 +20,8 @@ Textly is a Chrome extension that puts AI-powered text operations one click away
 
 - **4 category tabs** — General, Learn, DSA, Quiz
 - **27 built-in actions** — Summarize, Explain, Debug Code, Generate MCQs, and more
+- **Continuous Conversations** — Ask follow-up questions to refine answers with full context history
+- **Inline Actions** — Copy, like, or dislike individual AI responses directly within the chat UI
 - **🌗 Dark / Light mode** — Toggle themes from the popup or directly from the toolbar
 - **Premium popup** — API key setup, feature overview, and theme toggle in one place
 - **Drag to move** — Reposition the toolbar anywhere on the screen
@@ -69,13 +71,13 @@ User selects a category tab (General / Learn / DSA / Quiz)
           ↓
 User picks an action (e.g. Summarize, ELI5, Debug Code, MCQ)
           ↓
-content.js sends the prompt + text to background.js
+content.js sends the prompt + text context to background.js
           ↓
 background.js calls OpenAI /v1/chat/completions
           ↓
-Result is displayed in the toolbar
+Result is displayed in the continuous chat UI
           ↓
-User can Copy the result or go Back to try another action
+User can ask a follow-up question or use inline actions (Copy, Like, Dislike)
 ```
 
 ---
@@ -115,9 +117,10 @@ Alternatively: Right-click the Textly icon → **Options** for the full settings
 3. The Textly toolbar appears just below your selection
 4. Choose a **category tab** at the top (General, Learn, DSA, or Quiz)
 5. Click any action button
-6. Read the result — click **📋 Copy** to copy or **← Back** to try another action
-7. Drag the toolbar by the **Textly** handle bar to move it anywhere on screen
-8. Click the **☀️/🌙** button on the toolbar to toggle dark/light mode
+6. Read the result in the chat panel
+7. Ask **follow-up questions** using the chat box at the bottom, or use the **📋 / 👍 / 👎** buttons below any AI response
+8. Drag the toolbar by the **Textly** handle bar to move it anywhere on screen
+9. Click the **☀️/🌙** button on the toolbar to toggle dark/light mode
 
 ---
 
@@ -133,7 +136,7 @@ Alternatively: Right-click the Textly icon → **Options** for the full settings
 | 🔗 LinkedIn  | Writes a thoughtful LinkedIn reply               |
 | ✅ Grammar   | Corrects grammar, spelling, and punctuation      |
 | 💡 Explain   | Explains the text in plain, simple language      |
-| • Bullets    | Converts the text into bullet points             |
+| • Bullets    | Converts the text into bullet points            |
 | ✂️ Shorter   | Condenses the text while keeping the key message |
 | 🌐 English   | Translates the text to English                   |
 

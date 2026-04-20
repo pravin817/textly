@@ -21,6 +21,12 @@ let isDragging = false;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 
+// SELECTION STATE
+let currentSelectedText = "";
+
+// CONVERSATION STATE
+let currentConversation = [];
+
 // =============================================================================
 // TOOLBAR CREATION
 // =============================================================================
@@ -50,25 +56,42 @@ function createToolbar() {
     .join("");
 
   toolbarElement.innerHTML = `
-    <!-- Drag handle + Theme Toggle -->
+    <!-- Drag handle + Theme/Action Toggles -->
     <div class="textai-drag-handle" id="textai-drag-handle">
-      <span class="textai-drag-dots">⠿</span>
-      <span class="textai-drag-label">Textly</span>
-      <button class="textai-settings-btn" id="textai-theme-toggle" title="Toggle theme">☀️</button>
+      <div class="textai-drag-left">
+        <span class="textai-drag-dots">⠿</span>
+        <span class="textai-drag-label">Textly</span>
+      </div>
+      <div class="textai-drag-right">
+        <button class="textai-settings-btn" id="textai-actions-toggle" title="Toggle Quick Actions">⚡</button>
+        <button class="textai-settings-btn" id="textai-theme-toggle" title="Toggle theme">☀️</button>
+      </div>
     </div>
 
-    <!-- Category tabs -->
-    <div class="textai-tabs">${tabsHTML}</div>
+    <!-- Quick Actions (Hidden by default) -->
+    <div id="textai-quick-actions" style="display: none;">
+      <!-- Category tabs -->
+      <div class="textai-tabs">${tabsHTML}</div>
+      <!-- Action buttons -->
+      <div class="textai-actions">${actionsHTML}</div>
+    </div>
 
-    <!-- Action buttons -->
-    <div class="textai-actions">${actionsHTML}</div>
+    <!-- Custom Chat Input -->
+    <div class="textai-chat-box" id="textai-chat-box">
+      <input type="text" id="textai-custom-prompt" placeholder="Ask anything about the text..." autocomplete="off">
+      <button id="textai-custom-submit" title="Send">➤</button>
+    </div>
 
     <!-- Result panel -->
     <div class="textai-result" style="display:none">
-      <div class="textai-result-text"></div>
+      <div class="textai-result-text" id="textai-chat-history"></div>
       <div class="textai-result-actions">
-        <button class="textai-icon-btn" id="textai-copy" title="Copy result">📋 Copy</button>
         <button class="textai-icon-btn" id="textai-back" title="Back to actions">← Back</button>
+      </div>
+      <!-- Follow-up input -->
+      <div class="textai-followup-box">
+        <input type="text" id="textai-followup-prompt" placeholder="Ask a follow-up..." autocomplete="off">
+        <button id="textai-followup-submit" title="Send">➤</button>
       </div>
     </div>
 
@@ -129,8 +152,8 @@ function findAction(actionId) {
 
 function attachDragHandle(handle) {
   handle.addEventListener("mousedown", (e) => {
-    // Don't start drag if clicking the theme toggle button
-    if (e.target.closest("#textai-theme-toggle")) {
+    // Don't start drag if clicking toggle buttons
+    if (e.target.closest("#textai-theme-toggle") || e.target.closest("#textai-actions-toggle")) {
       return;
     }
     startDrag(e);
@@ -211,10 +234,31 @@ function hideToolbar() {
 }
 
 function resetToolbar() {
-  toolbar.querySelector(".textai-tabs").style.display = "flex";
-  toolbar.querySelector(".textai-actions").style.display = "flex";
+  const quickActions = toolbar.querySelector("#textai-quick-actions");
+  if (quickActions) {
+    // Retain its display state (hidden or visible)
+    quickActions.style.display = quickActions.style.display;
+  }
+
+  toolbar.querySelector(".textai-chat-box").style.display = "flex";
   toolbar.querySelector(".textai-result").style.display = "none";
   toolbar.querySelector(".textai-loading").style.display = "none";
+
+  // Clear the input and focus it
+  const input = toolbar.querySelector("#textai-custom-prompt");
+  if (input) {
+    input.value = "";
+    setTimeout(() => input.focus(), 50);
+  }
+
+  const historyContainer = toolbar.querySelector("#textai-chat-history");
+  if (historyContainer) {
+    historyContainer.innerHTML = "";
+  }
+  const followupInput = toolbar.querySelector("#textai-followup-prompt");
+  if (followupInput) {
+    followupInput.value = "";
+  }
 }
 
 // =============================================================================
@@ -225,7 +269,7 @@ function attachActionButtons() {
   toolbar.querySelectorAll(".textai-btn").forEach((btn) => {
     btn.onclick = () => {
       const action = findAction(btn.dataset.id);
-      let text = window.getSelection().toString().trim();
+      let text = currentSelectedText;
 
       if (!action || !text) {
         return;
@@ -267,16 +311,64 @@ function attachHandlers() {
     chrome.storage.sync.set({ textly_theme: next });
   };
 
-  // Copy button
-  document.getElementById("textai-copy").onclick = () => {
-    const resultText = toolbar.querySelector(".textai-result-text").innerText;
-    navigator.clipboard.writeText(resultText);
+  // Actions toggle button
+  const actionsToggleBtn = document.getElementById("textai-actions-toggle");
+  const quickActionsContainer = document.getElementById("textai-quick-actions");
 
-    const copyBtn = document.getElementById("textai-copy");
-    copyBtn.textContent = "✅ Copied!";
-    setTimeout(() => {
-      copyBtn.textContent = "📋 Copy";
-    }, 1500);
+  actionsToggleBtn.onclick = (e) => {
+    e.stopPropagation();
+    if (quickActionsContainer.style.display === "none") {
+      quickActionsContainer.style.display = "block";
+      actionsToggleBtn.classList.add("active");
+    } else {
+      quickActionsContainer.style.display = "none";
+      actionsToggleBtn.classList.remove("active");
+    }
+  };
+
+  // Custom chat input handling
+  const chatInput = document.getElementById("textai-custom-prompt");
+  const chatSubmit = document.getElementById("textai-custom-submit");
+
+  const submitCustomPrompt = () => {
+    const prompt = chatInput.value.trim();
+    const text = currentSelectedText;
+
+    if (!prompt || !text) return;
+    if (text.length > MAX_TEXT_LENGTH) {
+      showWarning(`⚠️ Text too long (${text.length.toLocaleString()} chars). Max ${MAX_TEXT_LENGTH.toLocaleString()} allowed.`);
+      return;
+    }
+
+    runAction({ prompt }, text);
+  };
+
+  chatSubmit.onclick = submitCustomPrompt;
+  chatInput.onkeydown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submitCustomPrompt();
+    }
+  };
+
+  // Follow-up chat input handling
+  const followupInput = document.getElementById("textai-followup-prompt");
+  const followupSubmit = document.getElementById("textai-followup-submit");
+
+  const submitFollowup = () => {
+    const prompt = followupInput.value.trim();
+    if (!prompt) return;
+
+    currentConversation.push({ role: "user", content: prompt });
+    runFollowup();
+  };
+
+  followupSubmit.onclick = submitFollowup;
+  followupInput.onkeydown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submitFollowup();
+    }
   };
 
   // Back button
@@ -304,27 +396,175 @@ function showWarning(message) {
 // AI REQUEST
 // =============================================================================
 
+function createInitialMessageUI(msg) {
+  const fragment = document.createDocumentFragment();
+
+  const details = document.createElement("details");
+  details.className = "textai-chat-context-details";
+
+  const summary = document.createElement("summary");
+  summary.textContent = "📄 Context";
+
+  const contextText = document.createElement("div");
+  contextText.className = "textai-chat-context-text";
+  contextText.textContent = msg.context;
+
+  details.appendChild(summary);
+  details.appendChild(contextText);
+
+  const divider = document.createElement("div");
+  divider.className = "textai-chat-divider";
+
+  const question = document.createElement("div");
+  question.className = "textai-chat-question";
+  question.textContent = msg.prompt;
+
+  fragment.appendChild(details);
+  fragment.appendChild(divider);
+  fragment.appendChild(question);
+
+  return fragment;
+}
+
+function createAssistantMessageUI(msg) {
+  const wrapper = document.createElement("div");
+  wrapper.style.marginBottom = "8px";
+
+  const msgDiv = document.createElement("div");
+  msgDiv.className = "textai-chat-msg textai-chat-assistant";
+  msgDiv.style.marginBottom = "4px"; // tighter spacing to actions
+  msgDiv.textContent = msg.content;
+  wrapper.appendChild(msgDiv);
+
+  const actionsDiv = document.createElement("div");
+  actionsDiv.className = "textai-msg-actions";
+  actionsDiv.style.marginTop = "0"; // override default margin
+
+  const copyBtn = document.createElement("button");
+  copyBtn.className = "textai-msg-action-btn";
+  copyBtn.innerHTML = "📋";
+  copyBtn.title = "Copy";
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(msg.content);
+    copyBtn.innerHTML = "✅";
+    setTimeout(() => copyBtn.innerHTML = "📋", 1500);
+  };
+
+  const likeBtn = document.createElement("button");
+  likeBtn.className = "textai-msg-action-btn";
+  likeBtn.innerHTML = "👍";
+  likeBtn.title = "Like";
+
+  const dislikeBtn = document.createElement("button");
+  dislikeBtn.className = "textai-msg-action-btn";
+  dislikeBtn.innerHTML = "👎";
+  dislikeBtn.title = "Dislike";
+
+  likeBtn.onclick = () => {
+    likeBtn.classList.toggle("active");
+    dislikeBtn.classList.remove("active");
+  };
+
+  dislikeBtn.onclick = () => {
+    dislikeBtn.classList.toggle("active");
+    likeBtn.classList.remove("active");
+  };
+
+  actionsDiv.appendChild(copyBtn);
+  actionsDiv.appendChild(likeBtn);
+  actionsDiv.appendChild(dislikeBtn);
+
+  wrapper.appendChild(actionsDiv);
+
+  return wrapper;
+}
+
+function renderChatHistory() {
+  const historyContainer = toolbar.querySelector("#textai-chat-history");
+  historyContainer.innerHTML = "";
+
+  currentConversation.forEach((msg) => {
+    if (msg.role === "system") return;
+
+    if (msg.isInitial) {
+      const wrapper = document.createElement("div");
+      wrapper.className = `textai-chat-msg textai-chat-${msg.role}`;
+      wrapper.appendChild(createInitialMessageUI(msg));
+      historyContainer.appendChild(wrapper);
+    } else if (msg.role === "assistant") {
+      // createAssistantMessageUI now returns a fully constructed message bubble + actions below it
+      historyContainer.appendChild(createAssistantMessageUI(msg));
+    } else {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = `textai-chat-msg textai-chat-${msg.role}`;
+      msgDiv.textContent = msg.content;
+      historyContainer.appendChild(msgDiv);
+    }
+  });
+
+  historyContainer.scrollTop = historyContainer.scrollHeight;
+}
+
 function runAction(action, text) {
-  toolbar.querySelector(".textai-tabs").style.display = "none";
-  toolbar.querySelector(".textai-actions").style.display = "none";
+  toolbar.querySelector("#textai-quick-actions").style.display = "none";
+  toolbar.querySelector(".textai-chat-box").style.display = "none";
   toolbar.querySelector(".textai-loading").style.display = "flex";
 
+  const prompt = action.prompt || action;
+  currentConversation = [
+    {
+      role: "user",
+      content: `Query/Instructions:\n${prompt}\n\nContext (Selected Text):\n"""\n${text}\n"""`,
+      isInitial: true,
+      prompt: prompt,
+      context: text
+    }
+  ];
+
+  sendAIRequest();
+}
+
+function runFollowup() {
+  toolbar.querySelector(".textai-loading").style.display = "flex";
+
+  const followupInput = toolbar.querySelector("#textai-followup-prompt");
+  if (followupInput) {
+    followupInput.value = "";
+    followupInput.disabled = true;
+  }
+  const followupSubmit = toolbar.querySelector("#textai-followup-submit");
+  if (followupSubmit) followupSubmit.disabled = true;
+
+  renderChatHistory();
+
+  sendAIRequest();
+}
+
+function sendAIRequest() {
+  const safeMessages = currentConversation.map(m => ({ role: m.role, content: m.content }));
   chrome.runtime.sendMessage(
-    { type: "AI_REQUEST", prompt: action.prompt, text },
+    { type: "AI_REQUEST", messages: safeMessages },
     (response) => {
       toolbar.querySelector(".textai-loading").style.display = "none";
 
       const resultEl = toolbar.querySelector(".textai-result");
-      const textEl = toolbar.querySelector(".textai-result-text");
 
       if (response?.error) {
-        // Security: use textContent, never innerHTML, for user/AI content
-        textEl.textContent = "⚠️ " + response.error;
-        textEl.style.color = "#f87168";
+        currentConversation.push({ role: "assistant", content: "⚠️ " + response.error });
       } else {
-        textEl.textContent = response?.result ?? "—";
-        textEl.style.color = "";
+        const resultText = response?.result ?? "—";
+        currentConversation.push({ role: "assistant", content: resultText });
       }
+
+      renderChatHistory();
+
+      const followupInput = toolbar.querySelector("#textai-followup-prompt");
+      if (followupInput) {
+        followupInput.disabled = false;
+        setTimeout(() => followupInput.focus(), 50);
+      }
+      const followupSubmit = toolbar.querySelector("#textai-followup-submit");
+      if (followupSubmit) followupSubmit.disabled = false;
 
       resultEl.style.display = "flex";
     },
@@ -355,6 +595,7 @@ document.addEventListener("mouseup", (e) => {
     const text = selection?.toString().trim() ?? "";
 
     if (text.length > 10) {
+      currentSelectedText = text;
       const rect = selection.getRangeAt(0).getBoundingClientRect();
       showToolbar(rect);
     } else {
