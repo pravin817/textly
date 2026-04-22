@@ -302,7 +302,7 @@
 
 #textai-toolbar .textai-chat-box {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
   padding: 8px 12px;
   border-top: 1px solid var(--border-vis);
@@ -315,6 +315,12 @@
   font-size: 13px;
   color: var(--text);
   background: transparent;
+  resize: none;
+  overflow-y: auto;
+  max-height: 120px;
+  line-height: 1.4;
+  padding: 2px 0;
+  word-wrap: break-word;
 }
 
 #textai-toolbar #textai-custom-prompt::placeholder {
@@ -333,6 +339,7 @@
   background: transparent;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
+  margin-bottom: 2px;
 }
 
 #textai-toolbar #textai-custom-submit:hover {
@@ -535,7 +542,7 @@
 
 #textai-toolbar .textai-followup-box {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
   padding-top: 10px;
   border-top: 1px solid var(--border-vis);
@@ -548,6 +555,12 @@
   font-size: 13px;
   color: var(--text);
   background: transparent;
+  resize: none;
+  overflow-y: auto;
+  max-height: 120px;
+  line-height: 1.4;
+  padding: 2px 0;
+  word-wrap: break-word;
 }
 
 #textai-toolbar #textai-followup-prompt::placeholder {
@@ -570,6 +583,7 @@
   background: transparent;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
+  margin-bottom: 2px;
 }
 
 #textai-toolbar #textai-followup-submit:hover:not(:disabled) {

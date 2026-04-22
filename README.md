@@ -45,17 +45,18 @@ textly/
 │   ├── actions.js             # Action categories & prompt definitions (27 actions)
 │   ├── content.js             # Injected into pages — toolbar UI, tabs, drag, theme
 │   └── content.css            # Toolbar styles — themed with CSS custom properties
+├── options/
+│   ├── options.html           # Full settings page — API key entry
+│   ├── options.css            # Settings styles
+│   └── options.js             # Settings logic — save/load API key
 ├── popup/
 │   ├── popup.html             # Popup page — API key setup, theme toggle, overview
 │   ├── popup.css              # Popup styles — dark/light theme via CSS variables
 │   └── popup.js               # Popup logic — key save, theme toggle, validation
-├── options/
-│   ├── options.html           # Full settings page — API key entry
-│   └── options.js             # Settings logic — save/load API key
-└── icons/
-    ├── icon16.png
-    ├── icon48.png
-    └── icon128.png
+├── icons/
+│   ├── icon16.png
+│   ├── icon48.png
+│   └── icon128.png
 ```
 
 ---
