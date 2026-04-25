@@ -78,7 +78,7 @@ function createToolbar() {
 
     <!-- Custom Chat Input -->
     <div class="textai-chat-box" id="textai-chat-box">
-      <input type="text" id="textai-custom-prompt" placeholder="Ask anything about the text..." autocomplete="off">
+      <textarea id="textai-custom-prompt" placeholder="Ask anything about the text..." autocomplete="off" rows="1"></textarea>
       <button id="textai-custom-submit" title="Send">➤</button>
     </div>
 
@@ -90,7 +90,7 @@ function createToolbar() {
       </div>
       <!-- Follow-up input -->
       <div class="textai-followup-box">
-        <input type="text" id="textai-followup-prompt" placeholder="Ask a follow-up..." autocomplete="off">
+        <textarea id="textai-followup-prompt" placeholder="Ask a follow-up..." autocomplete="off" rows="1"></textarea>
         <button id="textai-followup-submit" title="Send">➤</button>
       </div>
     </div>
@@ -248,6 +248,7 @@ function resetToolbar() {
   const input = toolbar.querySelector("#textai-custom-prompt");
   if (input) {
     input.value = "";
+    input.style.height = "auto";
     setTimeout(() => input.focus(), 50);
   }
 
@@ -258,6 +259,7 @@ function resetToolbar() {
   const followupInput = toolbar.querySelector("#textai-followup-prompt");
   if (followupInput) {
     followupInput.value = "";
+    followupInput.style.height = "auto";
   }
 }
 
@@ -345,10 +347,14 @@ function attachHandlers() {
 
   chatSubmit.onclick = submitCustomPrompt;
   chatInput.onkeydown = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       submitCustomPrompt();
     }
+  };
+  chatInput.oninput = () => {
+    chatInput.style.height = "auto";
+    chatInput.style.height = chatInput.scrollHeight + "px";
   };
 
   // Follow-up chat input handling
@@ -365,10 +371,14 @@ function attachHandlers() {
 
   followupSubmit.onclick = submitFollowup;
   followupInput.onkeydown = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       submitFollowup();
     }
+  };
+  followupInput.oninput = () => {
+    followupInput.style.height = "auto";
+    followupInput.style.height = followupInput.scrollHeight + "px";
   };
 
   // Back button
@@ -530,6 +540,7 @@ function runFollowup() {
   const followupInput = toolbar.querySelector("#textai-followup-prompt");
   if (followupInput) {
     followupInput.value = "";
+    followupInput.style.height = "auto";
     followupInput.disabled = true;
   }
   const followupSubmit = toolbar.querySelector("#textai-followup-submit");
