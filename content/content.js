@@ -13,8 +13,10 @@
 const MAX_TEXT_LENGTH = 10000; // Security: cap text sent to API
 
 let toolbar = null;
+let triggerBtn = null;
 let hideTimer = null;
 let activeTabId = "general";
+let lastSelectionRect = null;
 
 // DRAG STATE
 let isDragging = false;
@@ -26,6 +28,57 @@ let currentSelectedText = "";
 
 // CONVERSATION STATE
 let currentConversation = [];
+
+// =============================================================================
+// TRIGGER BUTTON CREATION
+// =============================================================================
+
+function createTriggerButton() {
+  const btn = document.createElement("button");
+  btn.id = "textai-trigger-btn";
+  btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.5 2.5L13 9.5L20 11L13 12.5L11.5 19.5L10 12.5L3 11L10 9.5L11.5 2.5Z" fill="currentColor"/><path d="M19 15L19.6 17.4L22 18L19.6 18.6L19 21L18.4 18.6L16 18L18.4 17.4L19 15Z" fill="currentColor"/></svg>`;
+  btn.title = "Open Textly";
+
+  chrome.storage.sync.get("textly_theme", ({ textly_theme }) => {
+    btn.dataset.theme = textly_theme || "dark";
+  });
+
+  btn.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    hideTriggerBtn();
+    if (lastSelectionRect) {
+      showToolbar(lastSelectionRect);
+    }
+  });
+
+  document.body.appendChild(btn);
+  return btn;
+}
+
+function showTriggerBtn(rect) {
+  if (!triggerBtn) {
+    triggerBtn = createTriggerButton();
+  }
+  lastSelectionRect = rect;
+
+  let top = window.scrollY + rect.bottom + 8;
+  let left = window.scrollX + rect.right - 14;
+
+  triggerBtn.style.top = `${top}px`;
+  triggerBtn.style.left = `${left}px`;
+  triggerBtn.classList.add("textai-visible");
+}
+
+function hideTriggerBtn() {
+  if (triggerBtn) {
+    triggerBtn.classList.remove("textai-visible");
+  }
+}
 
 // =============================================================================
 // TOOLBAR CREATION
@@ -65,6 +118,7 @@ function createToolbar() {
       <div class="textai-drag-right">
         <button class="textai-settings-btn" id="textai-actions-toggle" title="Toggle Quick Actions">⚡</button>
         <button class="textai-settings-btn" id="textai-theme-toggle" title="Toggle theme">☀️</button>
+        <button class="textai-settings-btn" id="textai-close-btn" title="Close">✖</button>
       </div>
     </div>
 
@@ -153,7 +207,7 @@ function findAction(actionId) {
 function attachDragHandle(handle) {
   handle.addEventListener("mousedown", (e) => {
     // Don't start drag if clicking toggle buttons
-    if (e.target.closest("#textai-theme-toggle") || e.target.closest("#textai-actions-toggle")) {
+    if (e.target.closest("#textai-theme-toggle") || e.target.closest("#textai-actions-toggle") || e.target.closest("#textai-close-btn")) {
       return;
     }
     startDrag(e);
@@ -300,7 +354,7 @@ function attachHandlers() {
   attachActionButtons();
 
   // Theme toggle button
-  const themeBtn = document.getElementById("textai-theme-toggle");
+  const themeBtn = toolbar.querySelector("#textai-theme-toggle");
   const currentTheme = toolbar.dataset.theme || "dark";
   themeBtn.textContent = currentTheme === "dark" ? "☀️" : "🌙";
 
@@ -309,13 +363,14 @@ function attachHandlers() {
     const current = toolbar.dataset.theme || "dark";
     const next = current === "dark" ? "light" : "dark";
     toolbar.dataset.theme = next;
+    if (triggerBtn) triggerBtn.dataset.theme = next;
     themeBtn.textContent = next === "dark" ? "☀️" : "🌙";
     chrome.storage.sync.set({ textly_theme: next });
   };
 
   // Actions toggle button
-  const actionsToggleBtn = document.getElementById("textai-actions-toggle");
-  const quickActionsContainer = document.getElementById("textai-quick-actions");
+  const actionsToggleBtn = toolbar.querySelector("#textai-actions-toggle");
+  const quickActionsContainer = toolbar.querySelector("#textai-quick-actions");
 
   actionsToggleBtn.onclick = (e) => {
     e.stopPropagation();
@@ -328,9 +383,15 @@ function attachHandlers() {
     }
   };
 
+  // Close button
+  toolbar.querySelector("#textai-close-btn").onclick = (e) => {
+    e.stopPropagation();
+    hideToolbar();
+  };
+
   // Custom chat input handling
-  const chatInput = document.getElementById("textai-custom-prompt");
-  const chatSubmit = document.getElementById("textai-custom-submit");
+  const chatInput = toolbar.querySelector("#textai-custom-prompt");
+  const chatSubmit = toolbar.querySelector("#textai-custom-submit");
 
   const submitCustomPrompt = () => {
     const prompt = chatInput.value.trim();
@@ -358,8 +419,8 @@ function attachHandlers() {
   };
 
   // Follow-up chat input handling
-  const followupInput = document.getElementById("textai-followup-prompt");
-  const followupSubmit = document.getElementById("textai-followup-submit");
+  const followupInput = toolbar.querySelector("#textai-followup-prompt");
+  const followupSubmit = toolbar.querySelector("#textai-followup-submit");
 
   const submitFollowup = () => {
     const prompt = followupInput.value.trim();
@@ -382,7 +443,7 @@ function attachHandlers() {
   };
 
   // Back button
-  document.getElementById("textai-back").onclick = resetToolbar;
+  toolbar.querySelector("#textai-back").onclick = resetToolbar;
 }
 
 // =============================================================================
@@ -587,8 +648,9 @@ function sendAIRequest() {
 // =============================================================================
 
 chrome.storage.onChanged.addListener((changes) => {
-  if (changes.textly_theme && toolbar) {
-    toolbar.dataset.theme = changes.textly_theme.newValue || "dark";
+  if (changes.textly_theme) {
+    if (toolbar) toolbar.dataset.theme = changes.textly_theme.newValue || "dark";
+    if (triggerBtn) triggerBtn.dataset.theme = changes.textly_theme.newValue || "dark";
   }
 });
 
@@ -600,23 +662,30 @@ document.addEventListener("mouseup", (e) => {
   if (toolbar && toolbar.contains(e.target)) {
     return;
   }
+  if (triggerBtn && triggerBtn.contains(e.target)) {
+    return;
+  }
 
   setTimeout(() => {
     const selection = window.getSelection();
     const text = selection?.toString().trim() ?? "";
 
     if (text.length > 10) {
-      currentSelectedText = text;
-      const rect = selection.getRangeAt(0).getBoundingClientRect();
-      showToolbar(rect);
+      if (!toolbar || !toolbar.classList.contains("textai-visible")) {
+        currentSelectedText = text;
+        const rect = selection.getRangeAt(0).getBoundingClientRect();
+        showTriggerBtn(rect);
+      } else {
+        currentSelectedText = text;
+      }
     } else {
-      hideTimer = setTimeout(hideToolbar, 200);
+      hideTriggerBtn();
     }
   }, 10);
 });
 
 document.addEventListener("mousedown", (e) => {
-  if (toolbar && !toolbar.contains(e.target)) {
-    hideTimer = setTimeout(hideToolbar, 150);
+  if (triggerBtn && !triggerBtn.contains(e.target) && (!toolbar || !toolbar.contains(e.target))) {
+    hideTriggerBtn();
   }
 });
