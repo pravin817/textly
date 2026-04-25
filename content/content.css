@@ -600,3 +600,55 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* =============================================================================
+   TRIGGER BUTTON
+   ============================================================================= */
+
+#textai-trigger-btn {
+  all: initial;
+  position: absolute;
+  z-index: 2147483646;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #282e33, #1d2125);
+  color: #579dff;
+  border: 1px solid rgba(166, 197, 226, 0.15);
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.9);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s, border-color 0.15s;
+}
+
+#textai-trigger-btn[data-theme="light"] {
+  background: linear-gradient(135deg, #ffffff, #f1f2f4);
+  color: #0c66e4;
+  border: 1px solid rgba(9, 30, 66, 0.1);
+  box-shadow: 0 4px 12px rgba(9, 30, 66, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+#textai-trigger-btn.textai-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+#textai-trigger-btn:hover {
+  background: linear-gradient(135deg, #2d3339, #22272b);
+  border-color: #579dff;
+}
+
+#textai-trigger-btn[data-theme="light"]:hover {
+  background: linear-gradient(135deg, #ffffff, #e9eaec);
+  border-color: #0c66e4;
+}
+
+#textai-trigger-btn:active {
+  transform: scale(0.95);
+}
