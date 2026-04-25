@@ -1,49 +1,51 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+  <head>
+    <style>
+      .textai-chat-box {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        padding: 8px 12px;
+        border-top: 1px solid #ccc;
+        width: 300px;
+      }
 
-<head>
-  <style>
-    .textai-chat-box {
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
-      padding: 8px 12px;
-      border-top: 1px solid #ccc;
-      width: 300px;
-    }
+      #textai-custom-prompt {
+        all: unset;
+        flex: 1;
+        font-family: inherit;
+        font-size: 13px;
+        color: #000;
+        background: #f0f0f0;
+        resize: none;
+        overflow-y: auto;
+        max-height: 120px;
+        line-height: 1.4;
+        padding: 2px 0;
+        word-wrap: break-word;
+        /* Add this if it fixes it: */
+        white-space: pre-wrap;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
 
-    #textai-custom-prompt {
-      all: unset;
-      flex: 1;
-      font-family: inherit;
-      font-size: 13px;
-      color: #000;
-      background: #f0f0f0;
-      resize: none;
-      overflow-y: auto;
-      max-height: 120px;
-      line-height: 1.4;
-      padding: 2px 0;
-      word-wrap: break-word;
-      /* Add this if it fixes it: */
-      white-space: pre-wrap;
-      box-sizing: border-box;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="textai-chat-box">
-    <textarea id="textai-custom-prompt" rows="1" placeholder="Type here..."></textarea>
-    <button>➤</button>
-  </div>
-  <script>
-    const chatInput = document.getElementById('textai-custom-prompt');
-    chatInput.oninput = () => {
-      chatInput.style.height = "auto";
-      chatInput.style.height = chatInput.scrollHeight + "px";
-    };
-  </script>
-</body>
-
+  <body>
+    <div class="textai-chat-box">
+      <textarea
+        id="textai-custom-prompt"
+        rows="1"
+        placeholder="Type here..."
+      ></textarea>
+      <button>➤</button>
+    </div>
+    <script>
+      const chatInput = document.getElementById("textai-custom-prompt");
+      chatInput.oninput = () => {
+        chatInput.style.height = "auto";
+        chatInput.style.height = chatInput.scrollHeight + "px";
+      };
+    </script>
+  </body>
 </html>

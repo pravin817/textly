@@ -207,7 +207,11 @@ function findAction(actionId) {
 function attachDragHandle(handle) {
   handle.addEventListener("mousedown", (e) => {
     // Don't start drag if clicking toggle buttons
-    if (e.target.closest("#textai-theme-toggle") || e.target.closest("#textai-actions-toggle") || e.target.closest("#textai-close-btn")) {
+    if (
+      e.target.closest("#textai-theme-toggle") ||
+      e.target.closest("#textai-actions-toggle") ||
+      e.target.closest("#textai-close-btn")
+    ) {
       return;
     }
     startDrag(e);
@@ -399,7 +403,9 @@ function attachHandlers() {
 
     if (!prompt || !text) return;
     if (text.length > MAX_TEXT_LENGTH) {
-      showWarning(`⚠️ Text too long (${text.length.toLocaleString()} chars). Max ${MAX_TEXT_LENGTH.toLocaleString()} allowed.`);
+      showWarning(
+        `⚠️ Text too long (${text.length.toLocaleString()} chars). Max ${MAX_TEXT_LENGTH.toLocaleString()} allowed.`,
+      );
       return;
     }
 
@@ -518,7 +524,7 @@ function createAssistantMessageUI(msg) {
   copyBtn.onclick = () => {
     navigator.clipboard.writeText(msg.content);
     copyBtn.innerHTML = "✅";
-    setTimeout(() => copyBtn.innerHTML = "📋", 1500);
+    setTimeout(() => (copyBtn.innerHTML = "📋"), 1500);
   };
 
   const likeBtn = document.createElement("button");
@@ -588,8 +594,8 @@ function runAction(action, text) {
       content: `Query/Instructions:\n${prompt}\n\nContext (Selected Text):\n"""\n${text}\n"""`,
       isInitial: true,
       prompt: prompt,
-      context: text
-    }
+      context: text,
+    },
   ];
 
   sendAIRequest();
@@ -613,7 +619,10 @@ function runFollowup() {
 }
 
 function sendAIRequest() {
-  const safeMessages = currentConversation.map(m => ({ role: m.role, content: m.content }));
+  const safeMessages = currentConversation.map((m) => ({
+    role: m.role,
+    content: m.content,
+  }));
   chrome.runtime.sendMessage(
     { type: "AI_REQUEST", messages: safeMessages },
     (response) => {
@@ -622,7 +631,10 @@ function sendAIRequest() {
       const resultEl = toolbar.querySelector(".textai-result");
 
       if (response?.error) {
-        currentConversation.push({ role: "assistant", content: "⚠️ " + response.error });
+        currentConversation.push({
+          role: "assistant",
+          content: "⚠️ " + response.error,
+        });
       } else {
         const resultText = response?.result ?? "—";
         currentConversation.push({ role: "assistant", content: resultText });
@@ -649,8 +661,10 @@ function sendAIRequest() {
 
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.textly_theme) {
-    if (toolbar) toolbar.dataset.theme = changes.textly_theme.newValue || "dark";
-    if (triggerBtn) triggerBtn.dataset.theme = changes.textly_theme.newValue || "dark";
+    if (toolbar)
+      toolbar.dataset.theme = changes.textly_theme.newValue || "dark";
+    if (triggerBtn)
+      triggerBtn.dataset.theme = changes.textly_theme.newValue || "dark";
   }
 });
 
@@ -685,7 +699,11 @@ document.addEventListener("mouseup", (e) => {
 });
 
 document.addEventListener("mousedown", (e) => {
-  if (triggerBtn && !triggerBtn.contains(e.target) && (!toolbar || !toolbar.contains(e.target))) {
+  if (
+    triggerBtn &&
+    !triggerBtn.contains(e.target) &&
+    (!toolbar || !toolbar.contains(e.target))
+  ) {
     hideTriggerBtn();
   }
 });
