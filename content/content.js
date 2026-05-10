@@ -17,6 +17,7 @@ let triggerBtn = null;
 let hideTimer = null;
 let activeTabId = "general";
 let lastSelectionRect = null;
+let lastFirstLineRect = null;
 
 // DRAG STATE
 let isDragging = false;
@@ -92,8 +93,8 @@ function createTriggerButton() {
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
     hideTriggerBtn();
-    if (lastSelectionRect) {
-      showToolbar(lastSelectionRect);
+    if (lastSelectionRect && lastFirstLineRect) {
+      showToolbar(lastSelectionRect, lastFirstLineRect);
     }
   });
 
@@ -101,14 +102,21 @@ function createTriggerButton() {
   return btn;
 }
 
-function showTriggerBtn(rect) {
+function showTriggerBtn(overallRect, firstLineRect) {
   if (!triggerBtn) {
     triggerBtn = createTriggerButton();
   }
-  lastSelectionRect = rect;
+  lastSelectionRect = overallRect;
+  lastFirstLineRect = firstLineRect;
 
-  let top = window.scrollY + rect.bottom + 8;
-  let left = window.scrollX + rect.right - 14;
+  // Top-Center placement
+  let top = window.scrollY + firstLineRect.top - 36;
+  let left = window.scrollX + overallRect.left + overallRect.width / 2 - 14;
+
+  // Clamp if off top of screen
+  if (top < window.scrollY + 8) {
+    top = window.scrollY + firstLineRect.bottom + 8;
+  }
 
   triggerBtn.style.top = `${top}px`;
   triggerBtn.style.left = `${left}px`;
@@ -298,10 +306,20 @@ function stopDrag() {
 // TOOLBAR POSITIONING & VISIBILITY
 // =============================================================================
 
-function positionToolbar(rect) {
+function positionToolbar(overallRect, firstLineRect) {
   const tbWidth = 380;
-  let top = window.scrollY + rect.bottom + 8;
-  let left = window.scrollX + rect.left;
+
+  // Center horizontally
+  let left =
+    window.scrollX + overallRect.left + overallRect.width / 2 - tbWidth / 2;
+
+  // Top-Center placement (above first line)
+  let top = window.scrollY + firstLineRect.top - 65;
+
+  // Clamp if off top of screen
+  if (top < window.scrollY + 8) {
+    top = window.scrollY + firstLineRect.bottom + 8;
+  }
 
   if (left + tbWidth > window.innerWidth + window.scrollX) {
     left = window.scrollX + window.innerWidth - tbWidth - 12;
@@ -315,13 +333,13 @@ function positionToolbar(rect) {
   toolbar.style.left = `${left}px`;
 }
 
-function showToolbar(rect) {
+function showToolbar(overallRect, firstLineRect) {
   clearTimeout(hideTimer);
   if (!toolbar) {
     toolbar = createToolbar();
   }
   resetToolbar();
-  positionToolbar(rect);
+  positionToolbar(overallRect, firstLineRect);
   toolbar.classList.add("textai-visible");
   attachHandlers();
 }
@@ -765,8 +783,12 @@ document.addEventListener("mouseup", (e) => {
     if (text.length > 10) {
       if (!toolbar || !toolbar.classList.contains("textai-visible")) {
         currentSelectedText = text;
-        const rect = selection.getRangeAt(0).getBoundingClientRect();
-        showTriggerBtn(rect);
+        const range = selection.getRangeAt(0);
+        const overallRect = range.getBoundingClientRect();
+        const rects = range.getClientRects();
+        const firstLineRect = rects.length > 0 ? rects[0] : overallRect;
+
+        showTriggerBtn(overallRect, firstLineRect);
       } else {
         currentSelectedText = text;
       }

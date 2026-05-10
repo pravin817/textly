@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Alignment</title>
+  <link rel="stylesheet" href="content/content.css">
+  <style>
+    body { font-family: sans-serif; padding: 100px; line-height: 1.6; max-width: 800px; margin: 0 auto; }
+    p { margin-bottom: 20px; font-size: 18px; }
+  </style>
+  <script>
+    // Mock chrome extension APIs
+    window.chrome = {
+      storage: {
+        sync: {
+          get: (key, cb) => cb({ textly_theme: "dark" }),
+          set: () => {}
+        },
+        onChanged: { addListener: () => {} }
+      },
+      runtime: {
+        sendMessage: (msg, cb) => {
+          console.log("Mock AI call:", msg);
+          if (cb) setTimeout(() => cb({ result: "This is a mock AI response to test the UI." }), 1000);
+        }
+      }
+    };
+  </script>
+  <script src="content/actions.js"></script>
+</head>
+<body>
+  <h1>Test Text Selection Alignment</h1>
+  <p id="p1">
+    This is a very large paragraph meant for testing text selection. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  </p>
+  <p id="p2">
+    Here is a second paragraph. It also contains multiple lines of text. We will highlight this text to see where the trigger button and the toolbar appear. The goal is to ensure they appear centered above the first line of the selection, rather than at the very bottom right corner.
+  </p>
+
+  <script src="content/content.js"></script>
+</body>
+</html>
