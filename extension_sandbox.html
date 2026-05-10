@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Textly Extension Sandbox</title>
+    <link rel="stylesheet" href="content/content.css" />
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 40px;
+        line-height: 1.6;
+      }
+      .dummy-text {
+        max-width: 800px;
+        margin: 0 auto;
+        font-size: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dummy-text" id="test-content">
+      <h1>Welcome to the Textly Sandbox</h1>
+      <p>
+        This is a paragraph of text used to test the Textly Chrome extension's
+        text selection capabilities. By highlighting this sentence, the Textly
+        trigger button should appear.
+      </p>
+      <p>
+        When the button is clicked, the floating toolbar should be injected into
+        the page, allowing us to interact with the various AI actions, tabs, and
+        chat features.
+      </p>
+    </div>
+
+    <!-- Mocking chrome APIs -->
+    <script>
+      window.chrome = {
+        storage: {
+          sync: {
+            get: (keys, callback) => {
+              console.log("Mock chrome.storage.sync.get called with", keys);
+              // Mock returning theme
+              if (typeof keys === "string" && keys === "textly_theme") {
+                setTimeout(() => callback({ textly_theme: "dark" }), 0);
+              } else {
+                setTimeout(() => callback({}), 0);
+              }
+            },
+            set: (obj) => {
+              console.log("Mock chrome.storage.sync.set called with", obj);
+            },
+            onChanged: {
+              addListener: (cb) => {
+                console.log("Mock storage onChanged addListener");
+              },
+            },
+          },
+        },
+        runtime: {
+          sendMessage: (msg, callback) => {
+            console.log("Mock chrome.runtime.sendMessage called with", msg);
+            if (msg.type === "AI_REQUEST") {
+              // Mock a successful AI response after 1 second
+              setTimeout(() => {
+                if (callback)
+                  callback({
+                    result:
+                      "This is a mocked AI response from the background script.",
+                  });
+              }, 1000);
+            } else if (msg.type === "TRACK_EVENT") {
+              // Silent tracking mock
+            }
+          },
+        },
+      };
+    </script>
+
+    <!-- Load extension scripts -->
+    <script src="content/actions.js"></script>
+    <script src="content/content.js"></script>
+  </body>
+</html>
