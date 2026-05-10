@@ -338,7 +338,9 @@
   color: var(--accent);
   background: transparent;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   margin-bottom: 2px;
 }
 
@@ -528,7 +530,10 @@
   border-radius: 4px;
   cursor: pointer;
   color: var(--text-dim);
-  transition: background 0.15s, color 0.15s, transform 0.1s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    transform 0.1s;
 }
 
 #textai-toolbar .textai-msg-action-btn:hover {
@@ -587,7 +592,9 @@
   color: var(--accent);
   background: transparent;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   margin-bottom: 2px;
 }
 
@@ -615,7 +622,9 @@
   color: #579dff;
   border: 1px solid rgba(166, 197, 226, 0.15);
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -623,14 +632,20 @@
   opacity: 0;
   transform: translateY(-4px) scale(0.9);
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s, border-color 0.15s;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease,
+    background 0.15s,
+    border-color 0.15s;
 }
 
 #textai-trigger-btn[data-theme="light"] {
   background: linear-gradient(135deg, #ffffff, #f1f2f4);
   color: #0c66e4;
   border: 1px solid rgba(9, 30, 66, 0.1);
-  box-shadow: 0 4px 12px rgba(9, 30, 66, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1);
+  box-shadow:
+    0 4px 12px rgba(9, 30, 66, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 #textai-trigger-btn.textai-visible {

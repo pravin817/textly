@@ -6,24 +6,83 @@
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
-    <div class="card">
-      <h1>✦ Textly</h1>
-      <p>
-        Enter your OpenAI API key below. It is stored locally in your browser
-        and only ever sent directly to OpenAI — never to any third party.
-      </p>
+    <div class="page">
+      <!-- ─── OpenAI Card ─── -->
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h2>OpenAI API Key</h2>
+        <p>
+          Stored locally in your browser. Only ever sent directly to OpenAI —
+          never to any third party.
+        </p>
 
-      <label for="key">OpenAI API Key</label>
-      <input type="password" id="key" placeholder="sk-..." />
+        <label for="key">API Key</label>
+        <input type="password" id="key" placeholder="sk-..." />
 
-      <button id="save">Save Key</button>
-      <div class="status" id="status"></div>
+        <button id="save">Save Key</button>
+        <div class="status" id="status"></div>
 
-      <div class="hint">
-        Get your key at
-        <a href="https://platform.openai.com/api-keys" target="_blank">
-          platform.openai.com/api-keys
-        </a>
+        <div class="hint">
+          Get your key at
+          <a href="https://platform.openai.com/api-keys" target="_blank"
+            >platform.openai.com/api-keys</a
+          >
+        </div>
+      </div>
+
+      <!-- ─── Analytics Server Card ─── -->
+      <div class="card">
+        <div class="card-icon">📡</div>
+        <h2>Analytics Server</h2>
+        <p>
+          Connect Textly to your analytics server to track conversations and
+          feedback.
+        </p>
+
+        <label for="server-url">Server URL</label>
+        <input
+          type="text"
+          id="server-url"
+          placeholder="http://localhost:3001"
+        />
+
+        <!-- Signed-out view -->
+        <div id="signin-section">
+          <label for="signin-email">Email</label>
+          <input type="email" id="signin-email" placeholder="you@example.com" />
+
+          <label for="signin-password">Password</label>
+          <input
+            type="password"
+            id="signin-password"
+            placeholder="Your password"
+          />
+
+          <div class="row">
+            <button id="signin-btn">Sign In</button>
+            <button id="test-server" class="secondary">Test Connection</button>
+          </div>
+        </div>
+
+        <!-- Signed-in view (hidden by default) -->
+        <div id="signedIn-section" style="display: none">
+          <div class="signed-in-info">
+            <span class="signed-in-label">Signed in as</span>
+            <span id="signed-in-email" class="signed-in-email"></span>
+            <span id="signed-in-role" class="badge"></span>
+          </div>
+          <div class="row">
+            <button id="open-dashboard">Open Dashboard</button>
+            <button id="signout-btn" class="secondary">Sign Out</button>
+          </div>
+        </div>
+
+        <div class="status" id="server-status"></div>
+
+        <div class="hint">
+          Dashboard:
+          <a id="dashboard-link" href="#" target="_blank">localhost:3001</a>
+        </div>
       </div>
     </div>
 

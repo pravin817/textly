@@ -137,7 +137,7 @@ Alternatively: Right-click the Textly icon → **Options** for the full settings
 | 🔗 LinkedIn  | Writes a thoughtful LinkedIn reply               |
 | ✅ Grammar   | Corrects grammar, spelling, and punctuation      |
 | 💡 Explain   | Explains the text in plain, simple language      |
-| • Bullets    | Converts the text into bullet points            |
+| • Bullets    | Converts the text into bullet points             |
 | ✂️ Shorter   | Condenses the text while keeping the key message |
 | 🌐 English   | Translates the text to English                   |
 
@@ -184,7 +184,7 @@ Alternatively: Right-click the Textly icon → **Options** for the full settings
 | AI                 | OpenAI `gpt-4o-mini`                                |
 | UI                 | Vanilla JS + CSS (custom properties for theming)    |
 | Design system      | Atlassian Jira dark mode color tokens               |
-| Typography         | Inter (via Google Fonts)                             |
+| Typography         | Inter (via Google Fonts)                            |
 | Storage            | `chrome.storage.sync`                               |
 | Communication      | `chrome.runtime.sendMessage` (content ↔ background) |
 

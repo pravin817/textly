@@ -17,6 +17,31 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     chrome.runtime.openOptionsPage();
     return false;
   }
+
+  // ─── Analytics tracking relay ──────────────────────────────────────────────
+  // Content scripts can't fetch custom origins due to CSP, so they proxy
+  // tracking events through the background service worker.
+  // Fire-and-forget: tracking NEVER blocks or affects the UX.
+  if (msg.type === "TRACK_EVENT") {
+    chrome.storage.sync.get(
+      ["textly_server_url", "textly_api_token"],
+      ({ textly_server_url, textly_api_token }) => {
+        const serverUrl = textly_server_url || "http://localhost:3001";
+        const token = textly_api_token || "";
+        if (!token) return; // no token configured → skip silently
+
+        fetch(`${serverUrl}${msg.endpoint}`, {
+          method: msg.method || "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-textly-token": token,
+          },
+          body: msg.data ? JSON.stringify(msg.data) : undefined,
+        }).catch(() => {}); // swallow all errors silently
+      },
+    );
+    return false; // no async response needed
+  }
 });
 
 async function handleRequest(messages) {

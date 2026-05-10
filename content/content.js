@@ -28,6 +28,47 @@ let currentSelectedText = "";
 
 // CONVERSATION STATE
 let currentConversation = [];
+let currentConvId = null; // tracks the active server-side conversation ID
+
+// =============================================================================
+// TRACKER — Sends events to the analytics server via background.js relay.
+// All calls are fire-and-forget and never affect the UX.
+// =============================================================================
+
+const Tracker = {
+  _send(endpoint, method, data) {
+    chrome.runtime.sendMessage({ type: "TRACK_EVENT", endpoint, method, data });
+  },
+
+  startConversation(convId, actionId, selectedText) {
+    this._send("/api/conversations", "POST", {
+      id: convId,
+      url: window.location.href,
+      pageTitle: document.title,
+      selectedText: selectedText.slice(0, 500), // cap context size
+      actionId: actionId || "custom",
+      createdAt: Date.now(),
+    });
+  },
+
+  addMessage(convId, msgId, role, content, isInitial = false) {
+    this._send(`/api/conversations/${convId}/messages`, "POST", {
+      id: msgId,
+      role,
+      content: content.slice(0, 8000), // cap to avoid huge payloads
+      isInitial,
+      timestamp: Date.now(),
+    });
+  },
+
+  setFeedback(msgId, feedback) {
+    this._send(`/api/messages/${msgId}/feedback`, "PATCH", { feedback });
+  },
+};
+
+function genId(prefix) {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+}
 
 // =============================================================================
 // TRIGGER BUTTON CREATION
@@ -207,7 +248,11 @@ function findAction(actionId) {
 function attachDragHandle(handle) {
   handle.addEventListener("mousedown", (e) => {
     // Don't start drag if clicking toggle buttons
-    if (e.target.closest("#textai-theme-toggle") || e.target.closest("#textai-actions-toggle") || e.target.closest("#textai-close-btn")) {
+    if (
+      e.target.closest("#textai-theme-toggle") ||
+      e.target.closest("#textai-actions-toggle") ||
+      e.target.closest("#textai-close-btn")
+    ) {
       return;
     }
     startDrag(e);
@@ -399,7 +444,9 @@ function attachHandlers() {
 
     if (!prompt || !text) return;
     if (text.length > MAX_TEXT_LENGTH) {
-      showWarning(`⚠️ Text too long (${text.length.toLocaleString()} chars). Max ${MAX_TEXT_LENGTH.toLocaleString()} allowed.`);
+      showWarning(
+        `⚠️ Text too long (${text.length.toLocaleString()} chars). Max ${MAX_TEXT_LENGTH.toLocaleString()} allowed.`,
+      );
       return;
     }
 
@@ -426,7 +473,14 @@ function attachHandlers() {
     const prompt = followupInput.value.trim();
     if (!prompt) return;
 
-    currentConversation.push({ role: "user", content: prompt });
+    const followupMsgId = genId("msg");
+    currentConversation.push({
+      role: "user",
+      content: prompt,
+      _msgId: followupMsgId,
+    });
+    if (currentConvId)
+      Tracker.addMessage(currentConvId, followupMsgId, "user", prompt);
     runFollowup();
   };
 
@@ -518,7 +572,7 @@ function createAssistantMessageUI(msg) {
   copyBtn.onclick = () => {
     navigator.clipboard.writeText(msg.content);
     copyBtn.innerHTML = "✅";
-    setTimeout(() => copyBtn.innerHTML = "📋", 1500);
+    setTimeout(() => (copyBtn.innerHTML = "📋"), 1500);
   };
 
   const likeBtn = document.createElement("button");
@@ -532,13 +586,19 @@ function createAssistantMessageUI(msg) {
   dislikeBtn.title = "Dislike";
 
   likeBtn.onclick = () => {
+    const wasActive = likeBtn.classList.contains("active");
     likeBtn.classList.toggle("active");
     dislikeBtn.classList.remove("active");
+    const newFeedback = wasActive ? null : "like";
+    if (msg._msgId) Tracker.setFeedback(msg._msgId, newFeedback);
   };
 
   dislikeBtn.onclick = () => {
+    const wasActive = dislikeBtn.classList.contains("active");
     dislikeBtn.classList.toggle("active");
     likeBtn.classList.remove("active");
+    const newFeedback = wasActive ? null : "dislike";
+    if (msg._msgId) Tracker.setFeedback(msg._msgId, newFeedback);
   };
 
   actionsDiv.appendChild(copyBtn);
@@ -582,15 +642,27 @@ function runAction(action, text) {
   toolbar.querySelector(".textai-loading").style.display = "flex";
 
   const prompt = action.prompt || action;
+  const actionId = action.id || "custom";
+
+  // Create a new server-side conversation record
+  currentConvId = genId("conv");
+  Tracker.startConversation(currentConvId, actionId, text);
+
+  const userMsgId = genId("msg");
+  const userContent = `Query/Instructions:\n${prompt}\n\nContext (Selected Text):\n"""\n${text}\n"""`;
+
   currentConversation = [
     {
       role: "user",
-      content: `Query/Instructions:\n${prompt}\n\nContext (Selected Text):\n"""\n${text}\n"""`,
+      content: userContent,
       isInitial: true,
-      prompt: prompt,
-      context: text
-    }
+      prompt,
+      context: text,
+      _msgId: userMsgId,
+    },
   ];
+
+  Tracker.addMessage(currentConvId, userMsgId, "user", userContent, true);
 
   sendAIRequest();
 }
@@ -613,7 +685,10 @@ function runFollowup() {
 }
 
 function sendAIRequest() {
-  const safeMessages = currentConversation.map(m => ({ role: m.role, content: m.content }));
+  const safeMessages = currentConversation.map((m) => ({
+    role: m.role,
+    content: m.content,
+  }));
   chrome.runtime.sendMessage(
     { type: "AI_REQUEST", messages: safeMessages },
     (response) => {
@@ -622,10 +697,25 @@ function sendAIRequest() {
       const resultEl = toolbar.querySelector(".textai-result");
 
       if (response?.error) {
-        currentConversation.push({ role: "assistant", content: "⚠️ " + response.error });
+        const errContent = "⚠️ " + response.error;
+        const errMsgId = genId("msg");
+        currentConversation.push({
+          role: "assistant",
+          content: errContent,
+          _msgId: errMsgId,
+        });
+        if (currentConvId)
+          Tracker.addMessage(currentConvId, errMsgId, "assistant", errContent);
       } else {
         const resultText = response?.result ?? "—";
-        currentConversation.push({ role: "assistant", content: resultText });
+        const asstMsgId = genId("msg");
+        currentConversation.push({
+          role: "assistant",
+          content: resultText,
+          _msgId: asstMsgId,
+        });
+        if (currentConvId)
+          Tracker.addMessage(currentConvId, asstMsgId, "assistant", resultText);
       }
 
       renderChatHistory();
@@ -649,8 +739,10 @@ function sendAIRequest() {
 
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.textly_theme) {
-    if (toolbar) toolbar.dataset.theme = changes.textly_theme.newValue || "dark";
-    if (triggerBtn) triggerBtn.dataset.theme = changes.textly_theme.newValue || "dark";
+    if (toolbar)
+      toolbar.dataset.theme = changes.textly_theme.newValue || "dark";
+    if (triggerBtn)
+      triggerBtn.dataset.theme = changes.textly_theme.newValue || "dark";
   }
 });
 
@@ -685,7 +777,11 @@ document.addEventListener("mouseup", (e) => {
 });
 
 document.addEventListener("mousedown", (e) => {
-  if (triggerBtn && !triggerBtn.contains(e.target) && (!toolbar || !toolbar.contains(e.target))) {
+  if (
+    triggerBtn &&
+    !triggerBtn.contains(e.target) &&
+    (!toolbar || !toolbar.contains(e.target))
+  ) {
     hideTriggerBtn();
   }
 });
